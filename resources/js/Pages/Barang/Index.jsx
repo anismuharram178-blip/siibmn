@@ -4,6 +4,8 @@ import { useState } from "react";
 import { TiltCard } from "@/Components/TiltCard";
 import { FilterChips } from "@/Components/FilterChips";
 import { CustomSelect } from "@/Components/CustomSelect";
+import ConfirmDialog from "@/Components/ConfirmDialog";
+
 
 const STATUS_STYLE = {
     Tersedia: "bg-emerald-50 text-emerald-700 border border-emerald-200",
@@ -68,13 +70,22 @@ export default function Index({ barang, filters }) {
         );
     };
 
+    const [confirmingDelete, setConfirmingDelete] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState({ id: null, nama: "" });
+
     const handleDelete = (id, nama) => {
-        if (confirm(`Hapus barang "${nama}"?`)) {
-            router.delete(route("barang.destroy", id));
-        }
+        setDeleteTarget({ id, nama });
+        setConfirmingDelete(true);
+    };
+
+    const confirmDelete = () => {
+        if (!deleteTarget.id) return;
+        setConfirmingDelete(false);
+        router.delete(route("barang.destroy", deleteTarget.id));
     };
 
     return (
+
         <AuthenticatedLayout header="Asset Inventory">
             <Head title="Asset Inventory" />
             <div className="space-y-6">
@@ -423,7 +434,19 @@ export default function Index({ barang, filters }) {
                         </div>
                     )}
                 </div>
-            </div>
+            <ConfirmDialog
+                show={confirmingDelete}
+                onClose={() => setConfirmingDelete(false)}
+                title="Hapus Barang"
+                description={deleteTarget.nama ? `Apakah anda yakin menghapus "${deleteTarget.nama}"?` : undefined}
+                confirmLabel="Hapus"
+                cancelLabel="Batal"
+                variant="danger"
+                onConfirm={confirmDelete}
+                closeable
+            />
+        </div>
         </AuthenticatedLayout>
     );
 }
+
